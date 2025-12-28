@@ -1,0 +1,230 @@
+###########################################
+# .NET Backend (C#)
+###########################################
+
+# Build results
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/x64/
+**/x86/
+**/[Ww][Ii][Nn]32/
+**/[Aa][Rr][Mm]/
+**/[Aa][Rr][Mm]64/
+**/bld/
+**/[Ll]og/
+**/[Ll]ogs/
+
+# Visual Studio
+**/.vs/
+**/.vscode/
+**/.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# ReSharper
+**/_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Build outputs
+*.dll
+*.exe
+*.pdb
+*.dll.config
+*.cache
+*.ilk
+*.log
+*.lib
+*.sbr
+*.scc
+*.vspscc
+*.vssscc
+*.pidb
+*.svclog
+*.scc
+*.aps
+*_i.c
+*_p.c
+*_i.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.vspscc
+
+# NuGet
+**/packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+**/paket-files/
+
+# Test Results
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.trx
+*.coverage
+*.coveragexml
+
+# Database
+*.mdf
+*.ldf
+*.ndf
+
+# Publish
+**/PublishProfiles/
+*.pubxml
+*.publishproj
+
+# Azure
+*.azurePubxml
+
+# SQL Server files
+*.mdf
+*.ldf
+*.ndf
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+appsettings.Development.json
+appsettings.Local.json
+appsettings.*.json
+!appsettings.json
+
+###########################################
+# Next.js / React Frontend
+###########################################
+
+# Dependencies
+**/node_modules/
+**/.pnp/
+.pnp.js
+
+# Testing
+**/coverage/
+**/.nyc_output
+
+# Next.js
+**/.next/
+**/out/
+**/.vercel
+**/.turbo
+
+# Production
+**/build/
+**/dist/
+
+# Misc
+*.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env*.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+next-env.d.ts
+
+###########################################
+# General
+###########################################
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# IDE
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+pnpm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Lock files (optional - you might want to commit these)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+###########################################
+# Migrations (optional - you decide)
+###########################################
+# **/Migrations/
+
+###########################################
+# Docker
+###########################################
+*.dockerignore
+
+###########################################
+# MongoDB
+###########################################
+*.mongodb
+
+###########################################
+# Redis
+###########################################
+dump.rdb

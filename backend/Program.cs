@@ -1,78 +1,139 @@
-using System.Drawing;
+using System.IO.Compression;
+using System.Text.Json.Serialization;
+using backend.Filters;
 using backend.Middleware;
 using backend.Services;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using globalUserSchemaService.service;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.ResponseCompression;
 using MongoDB.Driver;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
 
 Log.Logger = new LoggerConfiguration()
-.MinimumLevel.Debug()
-.MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-.MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
-.Enrich.FromLogContext()
-.WriteTo.Console(
-    theme: AnsiConsoleTheme.Code,
-    outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft.AspNetCore", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console(
+        theme: AnsiConsoleTheme.Code,
+        outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}"
+    ).CreateLogger();
 
-
-
-).CreateLogger();
-var builder = WebApplication.CreateBuilder(args);
-
-// ✅ SERVICES (BEFORE Build)
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-
-
-builder.Host.UseSerilog();
-builder.Services.AddSingleton<IMongoClient>(sp =>
+try
 {
-    var connectionString = builder.Configuration.GetConnectionString("MongoDB")
-                           ?? "mongodb://localhost:27017";
-    var logger = sp.GetRequiredService<ILogger<Program>>();
-    Log.Information("✅ MongoDB connected successfully!");
+    Log.Information("🚀 Starting application...");
 
-    return new MongoClient(connectionString);
-});
+    var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddScoped<TenantMongoDbService>();
-
-builder.Services.AddHttpContextAccessor();
-
-var app = builder.Build();
-
-// ✅ PIPELINE
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-app.UseSerilogRequestLogging();
-app.UseMiddleware<TenantMiddleware>();
-app.MapControllers();
-
-// Minimal API (this is OK)
-app.MapGet("/weatherforecast", () =>
-{
-    var summaries = new[]
+    // ✅ This makes HTTPS work automatically in production
+    builder.Services.Configure<ForwardedHeadersOptions>(options =>
     {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild",
-        "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
+        options.ForwardedHeaders = ForwardedHeaders.XForwardedProto;
+        options.KnownIPNetworks.Clear();
+        options.KnownProxies.Clear();
+    });
 
-    return Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast(
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ));
-});
+    // Your services...
 
-app.Run();
+    builder.Services.AddEndpointsApiExplorer();
+    builder.Services.AddSwaggerGen();
+    builder.Services.AddFluentValidationAutoValidation();
+    builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+    builder.Services.AddAutoMapper(typeof(Program));
+    builder.Host.UseSerilog();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+    builder.Services.AddResponseCompression(options =>
+    {
+        options.EnableForHttps = true;
+        options.Providers.Add<BrotliCompressionProvider>();
+        options.Providers.Add<GzipCompressionProvider>();
+    });
+
+    builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Fastest;
+    });
+
+    builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+    {
+        options.Level = CompressionLevel.Fastest;
+    });
+
+    builder.Services.AddSingleton<IMongoClient>(sp =>
+    {
+        var connectionString = builder.Configuration.GetConnectionString("MongoDB")
+                               ?? "mongodb://localhost:27017";
+
+        Log.Information("📡 Registering MongoDB client");
+
+        var settings = MongoClientSettings.FromConnectionString(connectionString);
+        settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
+        settings.ConnectTimeout = TimeSpan.FromSeconds(5);
+
+        return new MongoClient(settings);
+    });
+    builder.Services.AddExceptionHandler<AllExceptionsFilter>();
+    builder.Services.AddProblemDetails();
+    builder.Services.AddControllers().AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+    });
+    builder.Services.AddScoped<TenantMongoDbService>();
+    builder.Services.AddScoped<globalUserService>();
+    builder.Services.AddHttpContextAccessor();
+
+    Log.Information("✅ Services registered");
+
+
+    var app = builder.Build();
+    using (var scope = app.Services.CreateScope())
+    {
+        var userService = scope.ServiceProvider.GetRequiredService<globalUserService>();
+        Log.Information("🔧 Creating unique indexes for GlobalUserSchema...");
+        await userService.createUniqIndex();
+        Log.Information("✅ Finished creating unique indexes");
+    }
+    app.UseExceptionHandler();
+    try
+    {
+        var mongoClient = app.Services.GetRequiredService<IMongoClient>();
+        var databases = mongoClient.ListDatabaseNames().ToList();
+        Log.Information("✅ MongoDB connected! Databases: {Count}", databases.Count);
+    }
+    catch (Exception ex)
+    {
+        Log.Warning("⚠️ MongoDB not accessible: {Message}", ex.Message);
+    }
+
+    // ✅ This ONE LINE makes your app understand it's behind HTTPS
+    app.UseForwardedHeaders();
+
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseSwagger();
+        app.UseSwaggerUI();
+    }
+
+    app.UseResponseCompression();
+    app.UseSerilogRequestLogging();
+    app.UseMiddleware<TenantMiddleware>();
+    app.UseAuthorization();
+    app.MapControllers();
+
+    Log.Information("✅ Application ready!");
+
+    app.Run();
+}
+catch (Exception ex)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    Log.Fatal(ex, "❌ Application failed to start: {Message}", ex.Message);
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
 }
