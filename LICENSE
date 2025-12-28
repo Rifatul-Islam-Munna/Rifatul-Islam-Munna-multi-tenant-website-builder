@@ -1,0 +1,38 @@
+Personal & Educational Use License (PEUL)
+
+Copyright (c) 2025 Rifatul
+
+Permission is hereby granted to any individual developer to use, copy,
+and modify this software solely for personal, educational, and
+self-learning purposes.
+
+This includes:
+
+- Studying the source code
+- Running the software locally
+- Modifying the software for learning or experimentation
+- Using the software in personal, non-commercial projects
+
+The following uses are strictly prohibited without prior written permission
+from the copyright holder:
+
+- Use of this software, in whole or in part, for any commercial purpose
+- Use of this software by or on behalf of an enterprise, organization,
+  company, or business entity
+- Use of this software to build, operate, or offer any Software-as-a-Service
+  (SaaS), hosted service, or production system
+- Selling, licensing, sublicensing, or monetizing this software or any
+  derivative works
+- Distribution of this software as part of a paid product or service
+
+This license does NOT grant permission to deploy this software in production
+environments, whether publicly or privately accessible, for commercial or
+enterprise use.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
