@@ -50,3 +50,4 @@ D:\sass-project\shop-ecommerce\backend\bin\Debug\net10.0\Serilog.Settings.Config
 D:\sass-project\shop-ecommerce\backend\bin\Debug\net10.0\Serilog.Sinks.Console.dll
 D:\sass-project\shop-ecommerce\backend\bin\Debug\net10.0\Serilog.Sinks.Debug.dll
 D:\sass-project\shop-ecommerce\backend\bin\Debug\net10.0\Serilog.Sinks.File.dll
+D:\sass-project\shop-ecommerce\backend\obj\Debug\net10.0\backend.sourcelink.json
