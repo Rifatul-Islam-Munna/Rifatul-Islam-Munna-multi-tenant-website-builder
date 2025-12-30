@@ -30,6 +30,10 @@ namespace globalUserSchema
 
         public string? UserSlug { get; set; }
 
+        public bool IsVerified { get; set; } = false;
+
+        public bool IsDeactivated { get; set; } = false;
+
     }
 
 

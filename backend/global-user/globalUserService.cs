@@ -4,18 +4,22 @@ using backend.Services;
 using BCrypt.Net;
 using Serilog;
 using Slugify;
+using System.Net.Mail;
+using backend.Exceptions;
 namespace globalUserSchemaService.service
 {
     public class globalUserService
     {
         private readonly IMongoCollection<GlobalUserSchema> _globalUserCollection;
         private readonly TenantMongoDbService _tenantDbService;
+        private readonly JwtService _jwtService;
 
-        public globalUserService(TenantMongoDbService tenantDbService)
+        public globalUserService(TenantMongoDbService tenantDbService, JwtService jwtService)
         {
             _tenantDbService = tenantDbService;
             _globalUserCollection = _tenantDbService.GetGlobalCollection<GlobalUserSchema>("globalUsers");
 
+            _jwtService = jwtService;
         }
         public async Task createUniqIndex()
         {
@@ -79,5 +83,47 @@ namespace globalUserSchemaService.service
             var user = await _globalUserCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
             return user;
         }
+        public class LoginResult
+        {
+            public bool Success { get; set; }
+            public GlobalUserSchema? User { get; set; }
+            public string? Token { get; set; }
+            public string? ErrorMessage { get; set; }
+            public int StatusCode { get; set; }
+        }
+
+
+        public async Task<LoginResult> LoginUser(string email, string password)
+        {
+            // Check if user exists
+            var user = await _globalUserCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
+            if (user == null)
+            {
+                throw new BadRequestException("User not found");
+                /* return new LoginResult { Success = false, ErrorMessage = "User not found", StatusCode = 404 }; */
+            }
+
+            // Verify password
+            if (!BCrypt.Net.BCrypt.Verify(password, user.Password))
+            {
+                throw new BadRequestException("Password is incorrect");
+                /*  return new LoginResult { Success = false, ErrorMessage = "Invalid credentials", StatusCode = 401 }; */
+            }
+            if (user.IsDeactivated)
+            {
+                throw new BadRequestException("User is deactivated");
+
+            }
+            // Generate JWT token with REAL user data
+            var token = _jwtService.GenerateToken(user.Id ?? "".ToString(), user.Name ?? "", user.Email ?? "", user.Role.ToString() ?? "", user.ShopName ?? "", user.UserSlug ?? "");
+
+            return new LoginResult
+            {
+                Success = true,
+                User = user,
+                Token = token
+            };
+        }
+
     }
 }

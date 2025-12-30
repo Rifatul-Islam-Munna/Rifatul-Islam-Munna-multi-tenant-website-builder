@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Serilog;
+using backend.Exceptions;  // ← ADD THIS LINE!
 
 namespace backend.Filters
 {
@@ -19,29 +20,34 @@ namespace backend.Filters
         {
             var request = httpContext.Request;
 
-            // Determine status code - default to 500 for all unknown exceptions
+            // UPDATE THIS SWITCH - Add your custom exceptions!
             var status = exception switch
             {
+                BadRequestException => StatusCodes.Status400BadRequest,           // ← ADD
+                UnauthorizedException => StatusCodes.Status401Unauthorized,       // ← ADD
+                NotFoundException => StatusCodes.Status404NotFound,               // ← ADD
+                ForbiddenException => StatusCodes.Status403Forbidden,             // ← ADD
+
+                // Keep existing ones too
                 ArgumentException => StatusCodes.Status400BadRequest,
                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
                 KeyNotFoundException => StatusCodes.Status404NotFound,
+
                 _ => StatusCodes.Status500InternalServerError
             };
 
             var message = exception.Message ?? "Internal server error";
             var stack = exception.StackTrace ?? null;
 
-            // Log to console and logger (same as NestJS)
             Console.WriteLine(message);
             Log.Error(message);
             _logger.LogError(exception, message);
 
-            // Return EXACT same format as NestJS
             var errorResponse = new
             {
                 statusCode = status,
                 path = request.Path.Value,
-                timestamp = DateTime.UtcNow.ToString("o"), // ISO format
+                timestamp = DateTime.UtcNow.ToString("o"),
                 message = message,
                 stack = stack
             };
@@ -51,7 +57,7 @@ namespace backend.Filters
 
             await httpContext.Response.WriteAsJsonAsync(errorResponse, cancellationToken);
 
-            return true; // Exception handled
+            return true;
         }
     }
 }
