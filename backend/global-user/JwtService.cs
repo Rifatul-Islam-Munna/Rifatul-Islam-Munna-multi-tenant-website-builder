@@ -1,8 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using AutoRegister;
 using Microsoft.IdentityModel.Tokens;
-
+[Register(ServiceLifetime.Scoped)]
 public class JwtService
 {
     private readonly IConfiguration _config;

@@ -78,7 +78,7 @@ export default function AboutPage() {
       </section>
 
       {/* Why Choose Us Section */}
-      <section className="py-12 px-4">
+      {/*  <section className="py-12 px-4">
         <div className="container mx-auto">
           <h2 className="text-3xl font-bold mb-8 text-center">Why Choose Us</h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -105,7 +105,7 @@ export default function AboutPage() {
             </Card>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Location Section */}
       <section className="py-12 px-4 bg-muted/30">

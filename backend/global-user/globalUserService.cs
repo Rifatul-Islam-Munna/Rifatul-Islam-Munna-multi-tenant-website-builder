@@ -6,8 +6,12 @@ using Serilog;
 using Slugify;
 using System.Net.Mail;
 using backend.Exceptions;
+using AutoRegister;
+
 namespace globalUserSchemaService.service
 {
+
+    [Register(ServiceLifetime.Scoped)]
     public class globalUserService
     {
         private readonly IMongoCollection<GlobalUserSchema> _globalUserCollection;
@@ -21,39 +25,7 @@ namespace globalUserSchemaService.service
 
             _jwtService = jwtService;
         }
-        public async Task createUniqIndex()
-        {
-            var indexKeys = Builders<GlobalUserSchema>.IndexKeys.Ascending(x => x.Email);
-            var indexKeysDefinitionPhone = Builders<GlobalUserSchema>.IndexKeys.Ascending(x => x.Phone);
-            var indexKeysDefinitionShop = Builders<GlobalUserSchema>.IndexKeys.Ascending(x => x.ShopName);
-            var indexKeysDefinitionShopSlug = Builders<GlobalUserSchema>.IndexKeys.Ascending(x => x.ShopSlug);
-            var indexOptions = new CreateIndexOptions { Unique = true };
 
-
-            var emailIndexModel = new CreateIndexModel<GlobalUserSchema>(
-                indexKeys, indexOptions);
-
-            var phoneIndexModel = new CreateIndexModel<GlobalUserSchema>(
-                indexKeysDefinitionPhone, indexOptions);
-
-            var shopIndexModel = new CreateIndexModel<GlobalUserSchema>(
-                indexKeysDefinitionShop, indexOptions);
-            var shopIndexShopSlug = new CreateIndexModel<GlobalUserSchema>(
-                indexKeysDefinitionShopSlug, indexOptions);
-            try
-            {
-                await _globalUserCollection.Indexes.CreateOneAsync(emailIndexModel);
-                await _globalUserCollection.Indexes.CreateOneAsync(phoneIndexModel);
-                await _globalUserCollection.Indexes.CreateOneAsync(shopIndexModel);
-                await _globalUserCollection.Indexes.CreateOneAsync(shopIndexShopSlug);
-
-                Log.Information("✅ Unique indexes created successfully");
-            }
-            catch (Exception ex)
-            {
-                Log.Information($"⚠️ Index creation (may already exist): {ex.Message}");
-            }
-        }
         private static string NormalizeSimple(string? input)
         {
             if (string.IsNullOrEmpty(input)) return string.Empty;
@@ -74,12 +46,16 @@ namespace globalUserSchemaService.service
             newUser.ShopName = NormalizeSimple(newUser.ShopName);
             newUser.ShopSlug = slugify(newUser.ShopName);
             newUser.UserSlug = slugify($"{newUser.ShopName}-{newUser.Email}-{newUser.Phone}");
+            newUser.IsVerified = BooleanHelper.ToBool(newUser.IsVerified);
+
+            newUser.IsDeactivated = BooleanHelper.ToBool(newUser.IsDeactivated);
             await _globalUserCollection.InsertOneAsync(newUser);
             return newUser;
         }
 
         public async Task<GlobalUserSchema> getUser(string email)
         {
+
             var user = await _globalUserCollection.Find(x => x.Email == email).FirstOrDefaultAsync();
             return user;
         }
@@ -124,6 +100,40 @@ namespace globalUserSchemaService.service
                 Token = token
             };
         }
+
+
+        public async Task<PaginatedResult<GlobalUserSchema>> GetAllUser(int page, int limit)
+        {
+            if (page < 1) page = 1;
+            if (limit < 1) limit = 10;
+
+            int skip = (page - 1) * limit;
+
+            var countTask = _globalUserCollection.CountDocumentsAsync(_ => true);
+
+            var usersTask = _globalUserCollection
+                .Find(_ => true)
+                .Skip(skip)
+                .Limit(limit)
+                .ToListAsync();
+
+            await Task.WhenAll(countTask, usersTask);
+
+
+
+            var totalCount = await countTask;
+            var users = await usersTask;
+
+            return new PaginatedResult<GlobalUserSchema>
+            {
+                Data = users,
+                TotalCount = (int)totalCount,
+                TotalPages = (int)Math.Ceiling(totalCount / (double)limit),
+                Page = page,
+                Limit = limit
+            };
+        }
+
 
     }
 }

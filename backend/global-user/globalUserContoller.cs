@@ -58,6 +58,18 @@ namespace globalUserController
         {
             return await _productService.getUser(email);
         }
+        [HttpGet("get-all-users")]
+        public async Task<IActionResult> GetAllUsers(
+            [FromQuery] int page = 1,
+            [FromQuery] int limit = 20)
+        {
+            if (page < 1) page = 1;
+            if (limit < 1) limit = 20;
+
+            var users = await _productService.GetAllUser(page, limit);
+            return Ok(users);
+        }
+
         [HttpGet("profile")]
         [Authorize]
         public IActionResult GetProfile()

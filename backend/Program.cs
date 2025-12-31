@@ -5,16 +5,20 @@ using backend.Middleware;
 using backend.Services;
 using FluentValidation;
 using FluentValidation.AspNetCore;
-using globalUserSchemaService.service;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+
+
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.ResponseCompression;
 using MongoDB.Driver;
 using Serilog;
 using Serilog.Sinks.SystemConsole.Themes;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
+
+
+
+using AutoRegister;
+using System.Reflection;
+using backend.Configuration;
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
@@ -85,74 +89,28 @@ try
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         options.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
     });
-    builder.Services.AddScoped<TenantMongoDbService>();
-    builder.Services.AddScoped<globalUserService>();
+
+
+    builder.Services.AddAutoregister(Assembly.GetExecutingAssembly());
+
+    MyConfig.Setup(builder);
+
+
+
+
     builder.Services.AddHttpContextAccessor();
-    builder.Services.AddScoped<JwtService>();
+
+
+
+
     Log.Information("✅ Services registered");
-    var jwtSection = builder.Configuration.GetSection("Jwt");
-    var key = jwtSection["Key"] ?? throw new InvalidOperationException("JWT Key not found");
-    var issuer = jwtSection["Issuer"] ?? throw new InvalidOperationException("JWT Issuer not found");
-    var audience = jwtSection["Audience"] ?? throw new InvalidOperationException("JWT Audience not found");
 
-    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-       .AddJwtBearer(options =>
-       {
-           options.SaveToken = true;
-           options.TokenValidationParameters = new TokenValidationParameters
-           {
-               ValidateIssuer = true,
-               ValidateAudience = true,
-               ValidateLifetime = true,
-               ValidateIssuerSigningKey = true,
-               ValidIssuer = issuer,
-               ValidAudience = audience,
-               IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key))
-           };
-           // Accept token from cookie OR Authorization header
-           options.Events = new JwtBearerEvents
-           {
-               OnMessageReceived = context =>
-   {
-       // Priority 1: Custom header 'access_token' (like your NestJS guard)
-       var customToken = context.Request.Headers["access_token"].FirstOrDefault();
-       if (!string.IsNullOrEmpty(customToken))
-       {
-           context.Token = customToken;
-           return Task.CompletedTask;
-       }
-
-       // Priority 2: Cookie 'auth-token'
-       if (context.Request.Cookies.ContainsKey("auth-token"))
-       {
-           context.Token = context.Request.Cookies["auth-token"];
-           return Task.CompletedTask;
-       }
-
-       // Priority 3: Authorization header 'Bearer token'
-       var authHeader = context.Request.Headers["Authorization"].FirstOrDefault();
-       if (!string.IsNullOrEmpty(authHeader) && authHeader.StartsWith("Bearer "))
-       {
-           context.Token = authHeader.Substring(7); // Remove "Bearer " prefix
-       }
-
-       return Task.CompletedTask;
-   }
-           };
-       })
-       .AddCookie("Cookies");
 
 
     var app = builder.Build();
     app.UseAuthentication();
     app.UseAuthorization();
-    using (var scope = app.Services.CreateScope())
-    {
-        var userService = scope.ServiceProvider.GetRequiredService<globalUserService>();
-        Log.Information("🔧 Creating unique indexes for GlobalUserSchema...");
-        await userService.createUniqIndex();
-        Log.Information("✅ Finished creating unique indexes");
-    }
+
     app.UseExceptionHandler();
     try
     {
