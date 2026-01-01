@@ -27,9 +27,9 @@ const ShopByCategorySection2: React.FC = () => {
           {productCategories.map((item) => (
             <button
               key={item.id}
-              className="group relative min-w-[160px] max-w-[220px] flex-1 rounded-xl border bg-muted/40 text-center shadow-sm transition-transform hover:-translate-y-1 hover:shadow-md lg:min-w-0"
+              className="group relative min-w-40 max-w-55 flex-1 rounded-xl border bg-muted/40 text-center transition-transform hover:-translate-y-1  lg:min-w-0"
             >
-              <div className="relative mx-auto mt-4 aspect-[3/4] w-[80%] overflow-hidden rounded-xl bg-background">
+              <div className="relative mx-auto mt-4 aspect-3/4 w-[80%] overflow-hidden rounded-xl bg-background">
                 <Image
                   src="/test.png"
                   alt={item.name}

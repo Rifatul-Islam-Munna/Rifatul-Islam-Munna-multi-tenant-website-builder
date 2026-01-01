@@ -44,6 +44,11 @@ namespace ShopOwnerSchema
         public string? OurTeamAboutImageUrl { get; set; }
         public string? OurTeamText { get; set; }
     }
+
+    public class Footer
+    {
+        public string? FooterType { get; set; }
+    }
     public class ShopOwnerSchema
     {
         [BsonId(IdGenerator = typeof(StringObjectIdGenerator))]
@@ -57,12 +62,15 @@ namespace ShopOwnerSchema
 
 
         public string? ShopLogo { get; set; }
+
+        public string? ThemeColor { get; set; }
         public string? ShopDescription { get; set; }
         public HomeSection? HomeSection { get; set; }
         public ProductDetails? ProductDetails { get; set; }
         public AboutUs? AboutUs { get; set; }
         public Location? Location { get; set; }
         public OurTeam? OurTeam { get; set; }
+        public Footer? Footer { get; set; }
 
 
 

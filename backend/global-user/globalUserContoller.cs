@@ -47,9 +47,16 @@ namespace globalUserController
 
             return Ok(new
             {
-                user = result.Token,
-                message = "Login successful"
+                token = result.Token,
+                message = "Login successful",
+                user = result.User
             });
+        }
+
+        [HttpPost("generate-shop-owner-details")]
+        public async Task<ShopOwnerSchema.ShopOwnerSchema> generateShopOwnerDetails([FromBody] ShopOwnerSchema.ShopOwnerSchema newUser)
+        {
+            return await _productService.PostShopOwner(newUser);
         }
 
 
@@ -106,7 +113,16 @@ namespace globalUserController
             });
         }
 
+        [HttpGet("get-website-details")]
+        public async Task<IActionResult> getWebsiteDetails(
+             [FromQuery] string ShopName)
 
+        {
+
+
+            var users = await _productService.GetShopOwner(ShopName);
+            return Ok(users);
+        }
 
     }
 }

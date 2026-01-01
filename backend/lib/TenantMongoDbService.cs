@@ -36,7 +36,7 @@ public class TenantMongoDbService
 
     public IMongoDatabase GetTenantDatabase()
     {
-        var shopName = _httpContextAccessor.HttpContext?.Items["ShopName"] as string ?? "global";
+        var shopName = _httpContextAccessor.HttpContext?.Items["shopName"] as string ?? "global";
         var databaseName = shopName == "global" ? _globalDbName : $"yourapp_{shopName}";
         Log.Information("Accessing tenant database: {DbName} for shop: {ShopName}", databaseName, shopName);
         return _client.GetDatabase(databaseName);
@@ -65,7 +65,7 @@ public class TenantMongoDbService
 
     public IMongoCollection<T> GetTenantCollection<T>(string collectionName)
     {
-        var shopName = _httpContextAccessor.HttpContext?.Items["ShopName"] as string;
+        var shopName = _httpContextAccessor.HttpContext?.Items["shopName"] as string ?? "global";
         var collection = GetTenantDatabase().GetCollection<T>(collectionName);
 
         var dbName = shopName == "global" ? _globalDbName : $"yourapp_{shopName}";
@@ -142,6 +142,6 @@ public class TenantMongoDbService
 
     public string GetCurrentShopName()
     {
-        return _httpContextAccessor.HttpContext?.Items["ShopName"] as string ?? "global";
+        return _httpContextAccessor.HttpContext?.Items["shopName"] as string ?? "global";
     }
 }

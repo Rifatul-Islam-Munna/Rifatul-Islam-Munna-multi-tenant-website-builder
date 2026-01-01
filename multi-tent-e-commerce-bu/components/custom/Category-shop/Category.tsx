@@ -44,13 +44,13 @@ const ShopByCategorySection3 = dynamic(
 
 /* ============ MAIN EXPORT ============ */
 
-const Category: React.FC = () => {
+const Category = ({ categorySection }: { categorySection: string }) => {
   const categoryComponents = {
     ShopByCategorySection1: <ShopByCategorySection1 />,
     ShopByCategorySection2: <ShopByCategorySection2 />,
     ShopByCategorySection3: <ShopByCategorySection3 />,
   };
-  const CategorySelected = HomePage.Category as keyof typeof categoryComponents;
+  const CategorySelected = categorySection as keyof typeof categoryComponents;
   return <>{categoryComponents[CategorySelected] ?? <CategorySkeleton />}</>;
 };
 

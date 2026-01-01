@@ -1,10 +1,11 @@
 // app/shop/page.tsx (or your page file)
+import { getWebsiteDetails } from "@/actions/webisteDetails";
 import ProductCard from "@/components/custom/common/ProductCard";
 import { ProductFilters } from "@/components/custom/filters/product-filters";
 
 import React from "react";
 
-const ShopPage = () => {
+const page = async () => {
   return (
     <main className="container mx-auto py-10 md:px-4">
       <div className="flex flex-col lg:flex-row gap-8">
@@ -38,4 +39,4 @@ const ShopPage = () => {
   );
 };
 
-export default ShopPage;
+export default page;

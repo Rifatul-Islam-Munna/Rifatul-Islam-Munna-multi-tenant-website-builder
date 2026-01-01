@@ -64,8 +64,8 @@ const heroMap = {
   HeroGridLikeDesign: <HeroGridLikeDesign />,
 } as const;
 
-export const HeroMain = () => {
-  const heroKey = HomePage.heroSection as keyof typeof heroMap;
+export const HeroMain = ({ heroSection }: { heroSection: string }) => {
+  const heroKey = heroSection as keyof typeof heroMap;
 
   return <>{heroMap[heroKey] ?? <HeroSkeleton />}</>;
 };

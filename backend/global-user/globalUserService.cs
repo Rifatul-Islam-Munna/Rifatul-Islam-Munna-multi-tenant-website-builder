@@ -18,12 +18,16 @@ namespace globalUserSchemaService.service
         private readonly TenantMongoDbService _tenantDbService;
         private readonly JwtService _jwtService;
 
+        private readonly IMongoCollection<ShopOwnerSchema.ShopOwnerSchema> _ShopOwnerSchema;
+
         public globalUserService(TenantMongoDbService tenantDbService, JwtService jwtService)
         {
             _tenantDbService = tenantDbService;
             _globalUserCollection = _tenantDbService.GetGlobalCollection<GlobalUserSchema>("globalUsers");
 
             _jwtService = jwtService;
+            _ShopOwnerSchema = _tenantDbService.GetGlobalCollection<ShopOwnerSchema.ShopOwnerSchema>("shopOwners");
+
         }
 
         private static string NormalizeSimple(string? input)
@@ -132,6 +136,24 @@ namespace globalUserSchemaService.service
                 Page = page,
                 Limit = limit
             };
+        }
+
+
+
+
+        // this is only for shop owner settings
+
+
+        public async Task<ShopOwnerSchema.ShopOwnerSchema> PostShopOwner(ShopOwnerSchema.ShopOwnerSchema Shop)
+        {
+            await _ShopOwnerSchema.InsertOneAsync(Shop);
+            return Shop;
+        }
+
+        public async Task<ShopOwnerSchema.ShopOwnerSchema> GetShopOwner(string ShopName)
+        {
+            var Shop = await _ShopOwnerSchema.Find(x => x.ShopName == ShopName).FirstOrDefaultAsync();
+            return Shop;
         }
 
 
